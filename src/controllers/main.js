@@ -119,7 +119,6 @@ const mainController = {
       if (user != null && bcryptjs.compareSync(req.body.password, user.Pass)) {
         res.redirect('/');
       }else{
-        res.send('Usuario o contraseña incorrectos.')
         res.render('login', { user : null});
       }
     })
