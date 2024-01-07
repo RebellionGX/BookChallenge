@@ -17,12 +17,12 @@ module.exports = (sequelize, dataTypes) => {
 
   const Categorie = sequelize.define(alias, cols, config);
 
-  Categorie.associate = function (models) {
+  /*Categorie.associate = function (models) {
     Categorie.belongsTo (models.User, {
         as: "user",
         foreingKey: "id"
     })
-  }
+  }*/
 
   return Categorie;
 };

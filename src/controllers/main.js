@@ -5,61 +5,95 @@ const db = require('../database/models');
 
 const mainController = {
   home: (req, res) => {
-    db.Book.findAll({
-      include: [{ association: 'authors' }]
-    })
+    if(req.session.User != null)  {
+      db.Book.findAll({
+        include: [{ association: 'authors' }]
+      })
       .then((books) => {
-        res.render('home', { books });
+        res.render('home', { books, user: req.session.User });
       })
       .catch((error) => console.log(error));
+    }
+    else{
+      res.render('login', { user: null });
+    }
+
   },
   bookDetail: (req, res) => {
-    db.Book.findByPk(req.params.id, {
-      include: [{ association: 'authors' }]
-    })
+    if(req.session.User != null)  {
+      db.Book.findByPk(req.params.id, {
+        include: [{ association: 'authors' }]
+      })
       .then((book) => {
-        res.render('bookDetail', { book });
+        res.render('bookDetail', { book, user: req.session.User });
       })
       .catch((error) => console.log(error));
+    }
+    else{
+      res.render('login', { user: null });
+    }
   },
   bookSearch: (req, res) => {
-    res.render('search', { books: [] });
+    if(req.session.User != null)  {
+      res.render('search', { books: [], user: req.session.User });
+    }
+    else{
+      res.render('login', { user: null });
+    }
   },
   bookSearchResult: (req, res) => {
-    db.Book.findAll({ where: { title: { [op.like]: '%'+req.body.title+'%' }} })
-    .then((books) => {
-      res.render('search', { books });
-    })
-    .catch((error) => console.log(error));
+    if(req.session.User != null)  {
+      db.Book.findAll({ where: { title: { [op.like]: '%'+req.body.title+'%' }} })
+      .then((books) => {
+        res.render('search', { books, user: req.session.User });
+      })
+      .catch((error) => console.log(error));    }
+    else{
+      res.render('login', { user: null });
+    }
   },
   deleteBook: (req, res) => {
-    db.sequelize.query('SET FOREIGN_KEY_CHECKS = 0', {raw: true})
-    db.Book.destroy({ where: { id: req.params.id } })
-    .then(() => {
-      db.sequelize.query('SET FOREIGN_KEY_CHECKS = 1', {raw: true})
-      res.redirect('/' );
-    })
-    .catch((error) => console.log(error));
+    if(req.session.User != null)  {
+      db.sequelize.query('SET FOREIGN_KEY_CHECKS = 0', {raw: true})
+      db.Book.destroy({ where: { id: req.params.id } })
+      .then(() => {
+        db.sequelize.query('SET FOREIGN_KEY_CHECKS = 1', {raw: true})
+        res.redirect('/' );
+      })
+      .catch((error) => console.log(error));  
+    }
+    else{
+      res.render('login', { user: null });
+    }
   },
   authors: (req, res) => {
-    db.Author.findAll()
+    if(req.session.User != null)  {
+      db.Author.findAll()
       .then((authors) => {
-        res.render('authors', { authors });
+        res.render('authors', { authors, user: req.session.User});
       })
       .catch((error) => console.log(error));
+    }
+    else{
+      res.render('login', { user: null });
+    }
   },
   authorBooks: (req, res) => {
-    db.Author.findByPk(req.params.id, {
-      include: [{ association: 'books' }]
-    })
-      .then((author) => {
-        res.render('authorBooks', { author });
+    if(req.session.User != null)  {
+      db.Author.findByPk(req.params.id, {
+        include: [{ association: 'books' }]
       })
-      .catch((error) => console.log(error));
+        .then((author) => {
+          res.render('authorBooks', { author, user: req.session.User });
+        })
+        .catch((error) => console.log(error));
+    }
+    else{
+      res.render('login', { user: null });
+    }
   },
-
   register: (req, res) => {
-    res.render('register');
+    res.render('register', { user: req.session.User});
   },
   processRegister: (req, res) => {
     db.User.create({
@@ -75,32 +109,51 @@ const mainController = {
       .catch((error) => console.log(error));
   },
   login: (req, res) => {
-    // Implement login process
-    res.render('login');
+    req.session.User = null;
+    res.render('login', { user : req.session.User });
   },
   processLogin: (req, res) => {
-    // Implement login process
-    res.render('home');
+    db.User.findOne({ where: { Email: req.body.email }, include: [{ association: 'category' }] } )
+    .then((user) => {
+      console.log(user.category);
+      req.session.User = user;
+      if (user != null && bcryptjs.compareSync(req.body.password, user.Pass)) {
+        res.redirect('/');
+      }else{
+        res.render('login', { user : null});
+      }
+    })
+    .catch((error) => console.log(error)); 
   },
   edit: (req, res) => {
-    db.Book.findByPk(req.params.id)
+    if(req.session.User != null)  {
+      db.Book.findByPk(req.params.id)
       .then((book) => {
-        res.render('editBook', { book })
+        res.render('editBook', { book, user : req.session.User })
       })
       .catch((error) => console.log(error));
+    }
+    else{
+      res.render('login', { user: null });
+    }
   },
   processEdit: (req, res) => {
-    db.Book.update(
-      {
-        title: req.body.title,
-        cover: req.body.cover,
-        description: req.body.description
-      },
-      { where: { id: req.params.id } })
-      .then(() => {
-        res.redirect('/books/detail/' + req.params.id );
-      })
-      .catch((error) => console.log(error));
+    if(req.session.User != null)  {
+      db.Book.update(
+        {
+          title: req.body.title,
+          cover: req.body.cover,
+          description: req.body.description
+        },
+        { where: { id: req.params.id } })
+        .then(() => {
+          res.redirect('/books/detail/' + req.params.id );
+        })
+        .catch((error) => console.log(error));
+    }
+    else{
+      res.render('login', { user: null });
+    }
   }
 };
 
