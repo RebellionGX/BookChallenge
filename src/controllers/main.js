@@ -33,8 +33,13 @@ const mainController = {
     .catch((error) => console.log(error));
   },
   deleteBook: (req, res) => {
-    // Implement delete book
-    res.render('home');
+    db.sequelize.query('SET FOREIGN_KEY_CHECKS = 0', {raw: true})
+    db.Book.destroy({ where: { id: req.params.id } })
+    .then(() => {
+      db.sequelize.query('SET FOREIGN_KEY_CHECKS = 1', {raw: true})
+      res.redirect('/' );
+    })
+    .catch((error) => console.log(error));
   },
   authors: (req, res) => {
     db.Author.findAll()
@@ -85,7 +90,6 @@ const mainController = {
       .catch((error) => console.log(error));
   },
   processEdit: (req, res) => {
-    console.log(req.body);
     db.Book.update(
       {
         title: req.body.title,
