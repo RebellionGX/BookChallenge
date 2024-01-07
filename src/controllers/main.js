@@ -48,8 +48,6 @@ const mainController = {
       include: [{ association: 'books' }]
     })
       .then((author) => {
-        console.log(author);
-        console.log(author.books);
         res.render('authorBooks', { author });
       })
       .catch((error) => console.log(error));
@@ -80,12 +78,25 @@ const mainController = {
     res.render('home');
   },
   edit: (req, res) => {
-    // Implement edit book
-    res.render('editBook', {id: req.params.id})
+    db.Book.findByPk(req.params.id)
+      .then((book) => {
+        res.render('editBook', { book })
+      })
+      .catch((error) => console.log(error));
   },
   processEdit: (req, res) => {
-    // Implement edit book
-    res.render('home');
+    console.log(req.body);
+    db.Book.update(
+      {
+        title: req.body.title,
+        cover: req.body.cover,
+        description: req.body.description
+      },
+      { where: { id: req.params.id } })
+      .then(() => {
+        res.redirect('/books/detail/' + req.params.id );
+      })
+      .catch((error) => console.log(error));
   }
 };
 
