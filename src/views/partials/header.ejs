@@ -11,7 +11,7 @@
     </ul>
 
     <div class="col-md-3 text-end">
-      <a href="/users/login" class="btn btn-outline-primary me-2">Login</a>
+      <a href="/users/login" class="btn btn-outline-primary me-2"><%= user == undefined || user == null ? 'Login' : 'Logout' %></a>
       <a href="/users/register" class="btn btn-outline-primary me-2">Sign-up</a>
     </div>
   </header>
