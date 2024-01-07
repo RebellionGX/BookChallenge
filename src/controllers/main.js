@@ -115,11 +115,11 @@ const mainController = {
   processLogin: (req, res) => {
     db.User.findOne({ where: { Email: req.body.email }, include: [{ association: 'category' }] } )
     .then((user) => {
-      console.log(user.category);
       req.session.User = user;
       if (user != null && bcryptjs.compareSync(req.body.password, user.Pass)) {
         res.redirect('/');
       }else{
+        res.send('Usuario o contraseña incorrectos.')
         res.render('login', { user : null});
       }
     })
